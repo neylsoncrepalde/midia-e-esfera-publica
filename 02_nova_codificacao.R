@@ -22,6 +22,7 @@ names(dados) = nomes2
 
 library(reshape2)
 library(dplyr)
+dados$ocasiao = ifelse(dados$PH == 1, "Public Hearing", "Meeting")
 names(dados)
 emocoes = dados %>% select(1:6)
 argumentos = dados %>% select(c(1, 14:37))
@@ -42,10 +43,11 @@ objetos_molten = objetos_molten %>% filter(value==1) %>% select(-value)
 
 molten = full_join(emocoes_molten, argumentos_molten, by='Argumentos')
 emo_obj = full_join(emocoes_molten, objetos_molten, by="Argumentos")
+obj_ocasiao = full_join(emo_obj, dados[c(1,40)], by="Argumentos")
+molten_ocasiao = full_join(molten, dados[c(1,40)], by="Argumentos")
 head(molten)
 head(emo_obj)
-
-head(molten)
+head(molten_ocasiao)
 
 # CRUZA EMOÇÕES E ARGUMENTOS
 table(molten$emocao, molten$argumento)
@@ -87,5 +89,22 @@ fisher.test(table(afavor$emocao, afavor$argumento), simulate.p.value = T, B=5000
 table(emo_obj$emocao, emo_obj$objeto)
 xtable::xtable(table(emo_obj$emocao, emo_obj$objeto))
 fisher.test(table(emo_obj$emocao, emo_obj$objeto), simulate.p.value = T, B=5000)
+
+
+# CRUZA EMOÇÕES E OCASIAO
+table(molten_ocasiao$ocasiao, molten_ocasiao$emocao)
+chisq.test(table(molten_ocasiao$ocasiao, molten_ocasiao$emocao))
+
+
+# CRUZA POSICIONAMENTO E OCASIAO
+table(molten_ocasiao$posicionamento, molten_ocasiao$ocasiao)
+chisq.test(table(molten_ocasiao$posicionamento, molten_ocasiao$ocasiao))
+
+# CRUZA OBJETOS E OCASIÃO
+table(obj_ocasiao$ocasiao, obj_ocasiao$objeto)
+xtable::xtable(table(obj_ocasiao$objeto, obj_ocasiao$ocasiao))
+chisq.test(table(obj_ocasiao$ocasiao, obj_ocasiao$objeto))
+fisher.test(table(obj_ocasiao$ocasiao, obj_ocasiao$objeto), simulate.p.value = T, B=5000)
+
 
 ######################################
