@@ -45,6 +45,8 @@ emo_obj = full_join(emocoes_molten, objetos_molten, by="Argumentos")
 head(molten)
 head(emo_obj)
 
+head(molten)
+
 # CRUZA EMOÇÕES E ARGUMENTOS
 table(molten$emocao, molten$argumento)
 xtable::xtable(table(molten$emocao, molten$argumento))
@@ -54,14 +56,23 @@ fisher.test(table(molten$emocao, molten$argumento), simulate.p.value = T, B=5000
 chisq.test(table(molten$emocao, molten$argumento))
 
 
-# CRUZA EMOÇÕES E ARGUMENTOS
+# PREPARANDO
 index = grep("C", molten$argumento)
 molten$argumento = as.character(molten$argumento)
+molten$posicionamento[index] = "Contra"
+molten$posicionamento[-index] = "A Favor"
 contra = molten[index,]
 afavor = molten[-index,]
 head(contra)
 head(afavor)
 
+# CRUZA EMOÇÕES E TIPO DE ARGUMENTO
+table(molten$posicionamento, molten$emocao)
+xtable::xtable(table(molten$posicionamento, molten$emocao))
+chisq.test(table(molten$posicionamento, molten$emocao))
+fisher.test(table(molten$posicionamento, molten$emocao))
+
+# CRUZA EMOÇÕES E ARGUMENTOS
 xtable::xtable(table(contra$emocao, contra$argumento))
 table(contra$emocao, contra$argumento)
 chisq.test(table(contra$emocao, contra$argumento))
