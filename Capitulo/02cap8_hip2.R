@@ -4,12 +4,12 @@
 #### Script: Neylson Crepalde
 #############################
 
+library(MASS)
 library(readxl)
 library(dplyr)
 library(descr)
 library(nnet)
 library(texreg)
-library(MASS)
 library(party)
 dados = read_excel("Artigo_Sitema_Banco_dedos_Completo.xlsx")
 names(dados)
