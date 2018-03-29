@@ -10,6 +10,7 @@ library(descr)
 library(nnet)
 library(texreg)
 library(MASS)
+library(rpart)
 dados = read_excel("Artigo_Sitema_Banco_dedos_Completo.xlsx")
 names(dados)
 
@@ -111,6 +112,7 @@ screenreg(list(reg_log_multi1,reg_log_multi2))
 #-------------------------------------------------
 # Regressão logística ordinal
 
+# Com desacordo categórico nominal
 log_or = polr(factor(justificacao, levels = c('opiniao','simples','complexa')) ~ 
                 desacordo + sexo + posicionamento + resposta,
               data = jus_des_total, Hess = T)
@@ -124,9 +126,35 @@ ctable
 betas = (exp(coef(log_or)) - 1) * 100
 cbind(betas, p)
 
-screenreg(log_or)
+# Com desacordo categórico ordinal
+log_or2 = polr(factor(justificacao, levels = c('opiniao','simples','complexa')) ~ 
+                desac_num + sexo + posicionamento + resposta,
+              data = jus_des_total, Hess = T)
+summary(log_or2)
+
+ctable <- coef(summary(log_or2))
+p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
+ctable <- cbind(ctable, "p value" = p)
+ctable
+
+betas = (exp(coef(log_or2)) - 1) * 100
+cbind(betas, p)
+
+
+screenreg(list(log_or, log_or2))
 
 ##################################################
 #-------------------------------------------------
 # Decision tree
+# Criando uma justificacao binaria
+jus_des_total$jus_bin = ifelse(jus_des_total$justificacao == 'opiniao', 0, 1)
+dec_tree = rpart(factor(justificacao, levels = c('opiniao','simples','complexa')) ~ 
+                   desacordo + sexo + posicionamento + resposta,
+                 data = jus_des_total, method = 'class')
+printcp(dec_tree)
+plotcp(dec_tree)
+summary(dec_tree)
 
+plot(dec_tree, uniform=TRUE, 
+     main="Classification Tree for Justification")
+text(dec_tree, use.n=TRUE, all=TRUE, cex=.8)
