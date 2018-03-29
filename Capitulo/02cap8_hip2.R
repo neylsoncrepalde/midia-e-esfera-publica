@@ -9,6 +9,7 @@ library(dplyr)
 library(descr)
 library(nnet)
 library(texreg)
+library(MASS)
 dados = read_excel("Artigo_Sitema_Banco_dedos_Completo.xlsx")
 names(dados)
 
@@ -108,4 +109,24 @@ screenreg(list(reg_log_multi1,reg_log_multi2))
 
 ##################################################
 #-------------------------------------------------
+# Regressão logística ordinal
+
+log_or = polr(factor(justificacao, levels = c('opiniao','simples','complexa')) ~ 
+                desacordo + sexo + posicionamento + resposta,
+              data = jus_des_total, Hess = T)
+summary(log_or)
+
+ctable <- coef(summary(log_or))
+p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
+ctable <- cbind(ctable, "p value" = p)
+ctable
+
+betas = (exp(coef(log_or)) - 1) * 100
+cbind(betas, p)
+
+screenreg(log_or)
+
+##################################################
+#-------------------------------------------------
+# Decision tree
 
