@@ -92,7 +92,7 @@ betas = (exp(coef(reg_log_multi1)) - 1) * 100
 
 #--------------------------------
 # Fazendo uma reg log multinomial mais complexa
-# Sexo não foi significante
+# Multinomial com desacordo nominal
 reg_log_multi2 = multinom(relevel(factor(justificacao), 'opiniao') ~ desacordo + 
                             sexo + posicionamento + resposta, 
                           data = jus_des_total)
@@ -105,8 +105,32 @@ p     # Atenção aos p-valores
 betas = (exp(coef(reg_log_multi2)) - 1) * 100
 cbind(t(betas), t(p))
 
+# Multinomial com desacordo ordinal
+reg_log_multi3 = multinom(relevel(factor(justificacao), 'opiniao') ~ desac_num + 
+                            sexo + posicionamento + resposta, 
+                          data = jus_des_total)
+summary(reg_log_multi3)
+z <- summary(reg_log_multi3)$coefficients/summary(reg_log_multi3)$standard.errors
+p <- (1 - pnorm(abs(z), 0, 1))*2
+p     # Atenção aos p-valores
+
+# Transformando em porcentagens de chances
+betas = (exp(coef(reg_log_multi3)) - 1) * 100
+cbind(t(betas), t(p))
+
+
 # Exibindo resultados para as duas regressões
-screenreg(list(reg_log_multi1,reg_log_multi2))
+screenreg(list(reg_log_multi2,reg_log_multi3))
+htmlreg(list(reg_log_multi2,reg_log_multi3),
+        custom.model.names = c('Model1 - Complex', 'Model1 - Simple',
+                               'Model2 - Complex', 'Model2 - Simple'),
+        custom.coef.names = c('Intercept','Disagreement - bold', 'Disagreement - soft', 
+                              'Sex - M', 'Positioning - Favorable', 'Positioning - Mixed', 
+                              'Answer - Not addressing comment', 'Answer - Previous Speaker', 
+                              'Disagreement (ordinal)'),
+        caption = 'Multinomial Logistic Regression Models',
+        caption.above = T,
+        file = 'res_log_mult.html')
 
 ##################################################
 #-------------------------------------------------
