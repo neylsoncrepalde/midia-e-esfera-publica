@@ -141,7 +141,12 @@ betas = (exp(coef(log_or2)) - 1) * 100
 cbind(betas, p)
 
 
-screenreg(list(log_or, log_or2))
+screenreg(list(log_or, log_or2), custom.model.names = c('Log Ord 1', 'Log Ord 2'))
+htmlreg(list(log_or, log_or2), file = 'res_log_ords.html',
+        custom.coef.names = c('Disagreement - bold', 'Disagreement - soft', 'Sex - M', 'Positioning - Favorable',
+                              'Positioning - Mixed', 'Answer - Not addressing comment', 'Answer - Previous Speaker', 
+                              'Disagreement (ordinal)'),
+        caption = "Ordinal Logistic Regression Models", caption.above = T)
 
 ##################################################
 #-------------------------------------------------
