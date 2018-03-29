@@ -7,6 +7,8 @@
 library(readxl)
 library(dplyr)
 library(descr)
+library(nnet)
+library(texreg)
 dados = read_excel("Artigo_Sitema_Banco_dedos_Completo.xlsx")
 names(dados)
 
@@ -25,7 +27,7 @@ names(dados)
 
 # Testando apenas a hipótese
 
-jus_des_total = dados %>% select(1:7, 12:14, 20:22) %>%
+jus_des_total = dados %>% select(1:10, 12:14, 17:24) %>%
   mutate(desacordo = case_when(
     `D01-Bold` == 1 ~ 'bold',
     `D02-Soft` == 1 ~ 'soft',
@@ -45,6 +47,20 @@ jus_des_total = dados %>% select(1:7, 12:14, 20:22) %>%
     `J01-Complexa` == 1 ~ 2,
     `J02-Simples` == 1 ~ 1,
     `J03-Opiniao` == 1 ~ 0
+  )) %>%
+  mutate(sexo = case_when(
+    `G01-Male` == 1 ~ 'M',
+    `G02-Female` == 1 ~ 'F'
+  )) %>%
+  mutate(posicionamento = case_when(
+    `P01-Mixed position` == 1 ~ 'mixed',
+    `P02-Contrario` == 1 ~ 'contrario',
+    `P03-Favoravel` == 1 ~ 'favoravel'
+  )) %>%
+  mutate(resposta = case_when(
+    `T01-User responds or reacts explicitly to the content of the post` == 1 ~ 'content',
+    `T02-User responds to previous speaker` == 1 ~ 'prev_speaker',
+    `T03-Not-addressing comment` == 1 ~ 'not_addressing_comment'
   ))
 
 freq(jus_des_total$desacordo, plot=F) # Divergência de 4 casos em absence
@@ -60,4 +76,36 @@ summary(table(jus_des_total$justificacao, jus_des_total$desacordo)) # São depen
 # Fazendo um teste de correlação
 cor.test(jus_des_total$just_num, jus_des_total$desac_num) # Não sig. Corr baixíssima.
 
+#--------------------------------
+# Fazendo uma reg log multinomial
+reg_log_multi1 = multinom(relevel(factor(justificacao), 'opiniao') ~ desacordo, 
+                          data = jus_des_total)
+summary(reg_log_multi1)
+z <- summary(reg_log_multi1)$coefficients/summary(reg_log_multi1)$standard.errors
+p <- (1 - pnorm(abs(z), 0, 1))*2
+p     # Atenção aos p-valores
+
+# Transformando em porcentagens de chances
+betas = (exp(coef(reg_log_multi1)) - 1) * 100
+
+#--------------------------------
+# Fazendo uma reg log multinomial mais complexa
+# Sexo não foi significante
+reg_log_multi2 = multinom(relevel(factor(justificacao), 'opiniao') ~ desacordo + 
+                            sexo + posicionamento + resposta, 
+                          data = jus_des_total)
+summary(reg_log_multi2)
+z <- summary(reg_log_multi2)$coefficients/summary(reg_log_multi2)$standard.errors
+p <- (1 - pnorm(abs(z), 0, 1))*2
+p     # Atenção aos p-valores
+
+# Transformando em porcentagens de chances
+betas = (exp(coef(reg_log_multi2)) - 1) * 100
+cbind(t(betas), t(p))
+
+# Exibindo resultados para as duas regressões
+screenreg(list(reg_log_multi1,reg_log_multi2))
+
+##################################################
+#-------------------------------------------------
 
