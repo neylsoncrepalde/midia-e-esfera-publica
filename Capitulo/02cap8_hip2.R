@@ -36,9 +36,9 @@ jus_des_total = dados %>% select(1:10, 12:14, 17:24) %>%
     `D03-Absence` == 1 ~ 'absence'
   )) %>%
   mutate(justificacao = case_when(
-    `J01-Complexa` == 1 ~ 'complexa',
-    `J02-Simples` == 1 ~ 'simples',
-    `J03-Opiniao` == 1 ~ 'opiniao'
+    `J01-Complexa` == 1 ~ 'Complex',
+    `J02-Simples` == 1 ~ 'Simple',
+    `J03-Opiniao` == 1 ~ 'Opinion'
   )) %>% 
   mutate(desac_num = case_when(
     `D01-Bold` == 1 ~ 2,
@@ -80,7 +80,7 @@ cor.test(jus_des_total$just_num, jus_des_total$desac_num) # Não sig. Corr baix�
 
 #--------------------------------
 # Fazendo uma reg log multinomial
-reg_log_multi1 = multinom(relevel(factor(justificacao), 'opiniao') ~ desacordo, 
+reg_log_multi1 = multinom(relevel(factor(justificacao), 'Opinion') ~ desacordo, 
                           data = jus_des_total)
 summary(reg_log_multi1)
 z <- summary(reg_log_multi1)$coefficients/summary(reg_log_multi1)$standard.errors
@@ -93,7 +93,7 @@ betas = (exp(coef(reg_log_multi1)) - 1) * 100
 #--------------------------------
 # Fazendo uma reg log multinomial mais complexa
 # Multinomial com desacordo nominal
-reg_log_multi2 = multinom(relevel(factor(justificacao), 'opiniao') ~ desacordo + 
+reg_log_multi2 = multinom(relevel(factor(justificacao), 'Opinion') ~ desacordo + 
                             sexo + posicionamento + resposta, 
                           data = jus_des_total)
 summary(reg_log_multi2)
@@ -106,7 +106,7 @@ betas = (exp(coef(reg_log_multi2)) - 1) * 100
 cbind(t(betas), t(p))
 
 # Multinomial com desacordo ordinal
-reg_log_multi3 = multinom(relevel(factor(justificacao), 'opiniao') ~ desac_num + 
+reg_log_multi3 = multinom(relevel(factor(justificacao), 'Opinion') ~ desac_num + 
                             sexo + posicionamento + resposta, 
                           data = jus_des_total)
 summary(reg_log_multi3)
@@ -122,8 +122,6 @@ cbind(t(betas), t(p))
 # Exibindo resultados para as duas regressões
 screenreg(list(reg_log_multi2,reg_log_multi3))
 htmlreg(list(reg_log_multi2,reg_log_multi3),
-        custom.model.names = c('Model1 - Complex', 'Model1 - Simple',
-                               'Model2 - Complex', 'Model2 - Simple'),
         custom.coef.names = c('Intercept','Disagreement - bold', 'Disagreement - soft', 
                               'Sex - M', 'Positioning - Favorable', 'Positioning - Mixed', 
                               'Answer - Not addressing comment', 'Answer - Previous Speaker', 
@@ -137,7 +135,7 @@ htmlreg(list(reg_log_multi2,reg_log_multi3),
 # Regressão logística ordinal
 
 # Com desacordo categórico nominal
-log_or = polr(factor(justificacao, levels = c('opiniao','simples','complexa')) ~ 
+log_or = polr(factor(justificacao, levels = c('Opinion','Simple','Complex')) ~ 
                 desacordo + sexo + posicionamento + resposta,
               data = jus_des_total, Hess = T)
 summary(log_or)
@@ -151,7 +149,7 @@ betas = (exp(coef(log_or)) - 1) * 100
 cbind(betas, p)
 
 # Com desacordo categórico ordinal
-log_or2 = polr(factor(justificacao, levels = c('opiniao','simples','complexa')) ~ 
+log_or2 = polr(factor(justificacao, levels = c('Opinion','Simple','Complex')) ~ 
                 desac_num + sexo + posicionamento + resposta,
               data = jus_des_total, Hess = T)
 summary(log_or2)
@@ -177,7 +175,7 @@ htmlreg(list(log_or, log_or2), file = 'res_log_ords.html',
 # Decision tree
 # Criando uma justificacao binaria
 jus_des_subset = subset(jus_des_total, !is.na(justificacao))
-dec_tree = ctree(factor(justificacao, levels = c('opiniao','simples','complexa')) ~ 
+dec_tree = ctree(factor(justificacao, levels = c('Opinion','Simple','Complex')) ~ 
                    desac_num + factor(sexo) + 
                    factor(posicionamento) + factor(resposta),
                  data = jus_des_subset)
