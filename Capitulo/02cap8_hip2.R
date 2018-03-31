@@ -111,7 +111,7 @@ betas = (exp(coef(reg_log_multi1)) - 1) * 100
 # Fazendo uma reg log multinomial mais complexa
 # Multinomial com desacordo nominal
 reg_log_multi2 = multinom(relevel(factor(justificacao), 'Opinion') ~ desacordo + 
-                            sexo + posicionamento + resposta, 
+                            sexo + posicionamento + resposta + plat_comment, 
                           data = jus_des_total)
 summary(reg_log_multi2)
 z <- summary(reg_log_multi2)$coefficients/summary(reg_log_multi2)$standard.errors
@@ -124,7 +124,7 @@ cbind(t(betas), t(p))
 
 # Multinomial com desacordo ordinal
 reg_log_multi3 = multinom(relevel(factor(justificacao), 'Opinion') ~ desac_num + 
-                            sexo + posicionamento + resposta, 
+                            sexo + posicionamento + resposta + plat_comment, 
                           data = jus_des_total)
 summary(reg_log_multi3)
 z <- summary(reg_log_multi3)$coefficients/summary(reg_log_multi3)$standard.errors
@@ -141,7 +141,8 @@ screenreg(list(reg_log_multi2,reg_log_multi3))
 htmlreg(list(reg_log_multi2,reg_log_multi3),
         custom.coef.names = c('Intercept','Disagreement - bold', 'Disagreement - soft', 
                               'Sex - M', 'Positioning - Favorable', 'Positioning - Mixed', 
-                              'Answer - Not addressing comment', 'Answer - Previous Speaker', 
+                              'Answer - Not addressing comment', 'Answer - Previous Speaker',
+                              'Platform - Hearing comment', 'Platform - News comment',
                               'Disagreement (ordinal)'),
         caption = 'Multinomial Logistic Regression Models',
         caption.above = T,
