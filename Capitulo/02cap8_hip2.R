@@ -63,6 +63,16 @@ jus_des_total = dados %>% select(1:10, 12:14, 17:24) %>%
     `T01-User responds or reacts explicitly to the content of the post` == 1 ~ 'content',
     `T02-User responds to previous speaker` == 1 ~ 'prev_speaker',
     `T03-Not-addressing comment` == 1 ~ 'not_addressing_comment'
+  )) %>%
+  mutate(plat_comment = case_when(
+    `Comentário Facebook` == 1 ~ 'Facebook comment',
+    `Comentário Audiência` == 1 ~ 'Hearing comment',
+    `Comentário Notícias` == 1 ~ 'News comment'
+  )) %>%
+  mutate(plataforma = case_when(
+    `Texto plataforma (FB)` == 1 ~ 'Facebook',
+    `Texto plataforma (audiência)` == 1 ~ 'Hearing',
+    `Texto plataforma (Notícias)` == 1 ~ 'News'
   ))
 
 freq(jus_des_total$desacordo, plot=F) # Divergência de 4 casos em absence
@@ -71,6 +81,13 @@ freq(jus_des_total$`D03-Absence`, plot = F)
 freq(jus_des_total$justificacao, plot = F) # Divergência de 1 caso em opiniao
 freq(jus_des_total$`J03-Opiniao`, plot = F)
 
+freq(jus_des_total$plat_comment, plot = F)
+freq(jus_des_total$`Comentário Notícias`, plot = F) # OK
+
+freq(jus_des_total$plataforma, plot = F)
+freq(jus_des_total$`Texto plataforma (Notícias)`, plot = F) # OK. Só tem audiências
+
+#########################
 # Testando a relação entre a justificacao e o desacordo
 table(jus_des_total$justificacao, jus_des_total$desacordo)
 summary(table(jus_des_total$justificacao, jus_des_total$desacordo)) # São dependentes
