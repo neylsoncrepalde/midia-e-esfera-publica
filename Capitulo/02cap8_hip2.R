@@ -154,7 +154,7 @@ htmlreg(list(reg_log_multi2,reg_log_multi3),
 
 # Com desacordo categórico nominal
 log_or = polr(factor(justificacao, levels = c('Opinion','Simple','Complex')) ~ 
-                desacordo + sexo + posicionamento + resposta,
+                desacordo + sexo + posicionamento + resposta + plat_comment,
               data = jus_des_total, Hess = T)
 summary(log_or)
 
@@ -168,7 +168,7 @@ cbind(betas, p)
 
 # Com desacordo categórico ordinal
 log_or2 = polr(factor(justificacao, levels = c('Opinion','Simple','Complex')) ~ 
-                desac_num + sexo + posicionamento + resposta,
+                desac_num + sexo + posicionamento + resposta + plat_comment,
               data = jus_des_total, Hess = T)
 summary(log_or2)
 
@@ -185,6 +185,7 @@ screenreg(list(log_or, log_or2), custom.model.names = c('Log Ord 1', 'Log Ord 2'
 htmlreg(list(log_or, log_or2), file = 'res_log_ords.html',
         custom.coef.names = c('Disagreement - bold', 'Disagreement - soft', 'Sex - M', 'Positioning - Favorable',
                               'Positioning - Mixed', 'Answer - Not addressing comment', 'Answer - Previous Speaker', 
+                              'Platform - Hearing comment', 'Platform - News comment',
                               'Disagreement (ordinal)'),
         caption = "Ordinal Logistic Regression Models", caption.above = T)
 
