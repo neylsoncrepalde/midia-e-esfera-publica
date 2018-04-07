@@ -24,6 +24,12 @@ names(dados)
 # 2) Criar uma variável numérica Justificação - 
 #    Complexa = 2, simples = 1, opinião = 0
 
+#-------------------------------------
+# Testando a integridade das variáveis
+2 %in% (dados$`P01-Mixed position` + dados$`P02-Contrario`) #OK
+2 %in% (dados$`P01-Mixed position` + dados$`P02-Contrario`) #OK
+
+
 #----------------------------
 # Abordagem 1 - Dados como estão. Y = Just. Complexa [20]
 
@@ -147,6 +153,7 @@ htmlreg(list(reg_log_multi2,reg_log_multi3),
         caption = 'Multinomial Logistic Regression Models',
         caption.above = T,
         file = 'res_log_mult.html')
+
 
 ##################################################
 #-------------------------------------------------
