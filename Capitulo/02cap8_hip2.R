@@ -4,6 +4,13 @@
 #### Script: Neylson Crepalde
 #############################
 
+# Justificação foi codificada apenas para comentários, não para textos
+# Acordo e desacordo foi codificado apenas para comentários, não para textos
+# Resposta do usuário foi codificado apenas para comentários
+
+# OS USUÁRIOS FAZEM USO DOS ARGUMENTOS AOS QUAIS ELES SÃO EXPOSTOS NOS DIFERENTES AMBIENTES
+# (PLATAFORMAS)? Quem vem a público e qual argumento ele mobiliza?
+
 library(MASS)
 library(readxl)
 library(dplyr)
@@ -11,8 +18,14 @@ library(descr)
 library(nnet)
 library(texreg)
 library(party)
-dados = read_excel("Artigo_Sitema_Banco_dedos_Completo.xlsx")
+dados = read_excel("Banco_Dados_Completo_17-05.xlsx")
 names(dados)
+
+
+# Filtrando apenas os dados relevantes para a modelagem, a saber, COMENTÁRIOS
+dados = dados %>% filter(`Comentário Facebook` == 1 | 
+                           `Comentário Audiência` == 1 |
+                           `Comentário Notícias` == 1)
 
 #----------------------------------------------
 ### HIPÓTESE 2 - Haverá maior ocorrência de justificação onde tem maior 
@@ -26,9 +39,20 @@ names(dados)
 
 #-------------------------------------
 # Testando a integridade das variáveis
-2 %in% (dados$`P01-Mixed position` + dados$`P02-Contrario`) #OK
-2 %in% (dados$`P01-Mixed position` + dados$`P02-Contrario`) #OK
-
+which(dados$`P01-Mixed position` + dados$`P02-Contrario` + dados$`P03-Favoravel` + 
+        dados$`P04-Non Identifiable` > 1) # Tem 1
+which(dados$`Comentário Audiência` + dados$`Comentário Facebook` +
+        dados$`Comentário Notícias` > 1) # OK
+which(dados$`Texto plataforma (audiência)` + dados$`Texto plataforma (FB)` +
+        dados$`Texto plataforma (Notícias)` > 1) #OK
+which(dados$`D01-Bold` + dados$`D02-Soft` + dados$`D03-Absence` > 1) # Tem 4
+which(dados$`A01-Presence` + dados$`A02-Absence` > 1) #OK
+which(dados$`T01-User responds or reacts explicitly to the content of the post` +
+        dados$`T02-User responds to previous speaker` + 
+        dados$`T03-Not-addressing comment` > 1) # Tem 2
+which(dados$`J01-Complexa` + dados$`J02-Simples` + dados$`J03-Opiniao` > 1) # Tem 1
+which(dados$`G01-Male` + dados$`G02-Female` + dados$`G03-Non Identifiable` > 1) # Tem 1
+which(dados$`R01-Relevant` + dados$`R02-Non-relevant` > 1) # Tem 3
 
 #----------------------------
 # Abordagem 1 - Dados como estão. Y = Just. Complexa [20]
@@ -128,6 +152,33 @@ p     # Atenção aos p-valores
 betas = (exp(coef(reg_log_multi2)) - 1) * 100
 cbind(t(betas), t(p))
 
+# Estimando a mesma regressão com as variaveis originais do banco
+reg_log_multi2_complexa = glm(`J01-Complexa` ~ 
+                              `D01-Bold` + `D02-Soft` +
+                              `P01-Mixed position` + `P02-Contrario` + 
+                              `P03-Favoravel`+
+                              `T01-User responds or reacts explicitly to the content of the post` +
+                              `T02-User responds to previous speaker` +
+                              `T03-Not-addressing comment` +
+                              `Comentário Facebook` + `Comentário Audiência`+ `Comentário Notícias`,
+                               data = dados, family = binomial(link = 'logit'))
+res_complexa = summary(reg_log_multi2_complexa)
+betas_complexa = (exp(coef(reg_log_multi2_complexa)) - 1) * 100
+cbind(betas_complexa, res_complexa$coefficients[,4])
+
+reg_log_multi2_simples = glm(`J02-Simples` ~ 
+                                `D01-Bold` + `D02-Soft` +
+                                `P01-Mixed position` + `P02-Contrario` + 
+                                `P03-Favoravel`+
+                                `T01-User responds or reacts explicitly to the content of the post` +
+                                `T02-User responds to previous speaker` +
+                                `T03-Not-addressing comment` +
+                                `Comentário Facebook` + `Comentário Audiência`+ `Comentário Notícias`,
+                              data = dados, family = binomial(link = 'logit'))
+res_simples = summary(reg_log_multi2_simples)
+betas_simples = (exp(coef(reg_log_multi2_simples)) - 1) * 100
+cbind(betas_simples, res_simples$coefficients[,4])
+
 # Multinomial com desacordo ordinal
 reg_log_multi3 = multinom(relevel(factor(justificacao), 'Opinion') ~ desac_num + 
                             sexo + posicionamento + resposta + plat_comment, 
@@ -154,6 +205,59 @@ htmlreg(list(reg_log_multi2,reg_log_multi3),
         caption.above = T,
         file = 'res_log_mult.html')
 
+res = summary(reg_log_multi2)
+toplot = cbind(t(res$coefficients[,-1]), t(res$standard.errors[,-1]))
+toplot = as.data.frame(toplot)
+names(toplot) = c("Complex", "Simple", "Complex - SE", "Simple - SE")
+reshape2::melt(toplot)
+res_complex = toplot[1]
+names(res_complex)[1] = "Coef"
+res_complex$up = res_complex[,1] + toplot[,3]
+res_complex$down = res_complex[,1] - toplot[,3]
+res_complex$name = "Complex"
+res_complex$var = factor(c('Disagreement - bold', 'Disagreement - soft', 
+                           'Sex - M', 'Positioning - Favorable', 'Positioning - Mixed', 
+                           'Answer - Not addressing comment', 'Answer - Previous Speaker',
+                           'Platform - Hearing comment', 'Platform - News comment'),
+                         labels = c('Disagreement - bold', 'Disagreement - soft', 
+                                    'Sex - M', 'Positioning - Favorable', 'Positioning - Mixed', 
+                                    'Answer - Not addressing comment', 'Answer - Previous Speaker',
+                                    'Platform - Hearing comment', 'Platform - News comment'))
+
+res_simple = toplot[2]
+names(res_simple)[1] = "Coef"
+res_simple$up = res_simple[,1] + toplot[,4]
+res_simple$down = res_simple[,1] - toplot[,4]
+res_simple$name = "Simple"
+res_simple$var = factor(c('Disagreement - bold', 'Disagreement - soft', 
+                    'Sex - M', 'Positioning - Favorable', 'Positioning - Mixed', 
+                    'Answer - Not addressing comment', 'Answer - Previous Speaker',
+                    'Platform - Hearing comment', 'Platform - News comment'),
+                    labels = c('Disagreement - bold', 'Disagreement - soft', 
+                               'Sex - M', 'Positioning - Favorable', 'Positioning - Mixed', 
+                               'Answer - Not addressing comment', 'Answer - Previous Speaker',
+                               'Platform - Hearing comment', 'Platform - News comment'))
+
+
+res_completo = rbind(res_complex, res_simple)
+class(res_completo$var)
+
+library(ggplot2)
+library(forcats)
+res_completo %>% group_by(name) %>% 
+  ggplot(aes(x = fct_rev(var), y = Coef, fill = name, label = round(Coef, 2))) +
+  geom_hline(yintercept=0, lty=2, lwd=1, colour="grey50") +
+  geom_errorbar(aes(ymin=down, ymax=up, colour = name), 
+                lwd=1, width=0, alpha = .5) +
+  geom_point(size=4, pch=21, alpha = .6) +
+  coord_flip() +
+  theme_bw(base_size = 14) + 
+  theme(plot.title=element_text(size=18)) + 
+  # Título do gráfico e títulos de x e y
+  labs(y='', x='', color='', title = 'Estimates')+
+  scale_colour_discrete(guide = F) +
+  scale_fill_discrete("Model")
+ggsave("reg_multi2_coef_plot.png", height = 5, width = 8, dpi=100)
 
 ##################################################
 #-------------------------------------------------
